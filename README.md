@@ -46,10 +46,10 @@ Check requirements.txt
 
 **Installation**
 1.Clone the repository:
-'''
-git clone <repo-url>
+```
+git clone <repo-url> <br>
 cd soil_data_scrapper
-'''
+```
 
 
 
