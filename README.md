@@ -47,7 +47,7 @@ Check requirements.txt
 **Installation**
 1.Clone the repository:
 ```
-git clone <repo-url> <br>
+git clone <repo-url> 
 cd soil_data_scrapper
 ```
 
