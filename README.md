@@ -1,12 +1,10 @@
 # Soil_data_scrapper
 **Contents:**
 
-_1.README.md_ — this file
-
-_2.gemini_batch.py_ — included script (see code for exact CLI/flags)
-
-
-_3.output _— harvested GeoJSON / CSV data
+1.README.md — this file <br>
+2.main_code.py — included script (see code for exact CLI/flags) <br>
+4.Requirements.txt <br>
+3.output — harvested GeoJSON / CSV data <br>
 
 **Summary**
 
@@ -26,9 +24,11 @@ This repo implements a robust, three-stage pipeline to discover valid geographic
 
 
 **How it works — three stages**
+<br>
 __Stage 1 — Data Discovery (GraphQL)__
 POST GraphQL queries to the discovery endpoint to enumerate State _ids and District codes.
 Purpose: produce the list of valid (state_id, district_id) pairs used in later stages.
+<br>
 __Stage 2 — Configuration Retrieval__
 Request the obfuscated public/layers endpoint with state_code and district_code query params to obtain:
    i.shcLayers — available cycle years (e.g., ["2025-26","2024-25"])
@@ -40,17 +40,68 @@ Use the WMS GetFeatureInfo interface with info_format=application/json to retrie
 Tile the district BBOX using a small tile size and an overlap to avoid missing points on tile boundaries.
 Parse GeoJSON responses, deduplicate by unique feature ID, and store results as GeoJSON/CSV.
 
-**Requirements**
-Python 3.8+
+**Requirements** <br>
+Python 3.8+ <br>
 Check requirements.txt
 
-**Installation**
+**Installation** <br>
 1.Clone the repository:
 ```
 git clone <repo-url> 
 cd soil_data_scrapper
 ```
+2.Create and activate a virtual environment:
+```
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+```
+3.Install dependencies:
+```
+pip install -r requirements.txt
+```
 
+**Typical workflow**
+
+Discovery — generate a list of State and District IDs:
+
+Run the GraphQL discovery script to get _id and district codes.
+
+Config retrieval — fetch shcLayers (cycles) and bbox for target districts:
+
+Use the public layers API with state_code and district_code.
+
+Harvesting — run the WMS tiler to request tiles across the district bbox:
+
+Supply layer id {SC}_{DC}_shc_{CYCLE}, tile size (Δx, Δy), and overlap (e.g., 90%).
+
+The script will parse GeoJSON, deduplicate by feature ID, and write outputs to output.
+
+
+
+**Output format**
+
+Primary outputs: GeoJSON files containing point features with soil attributes (N, P, K, pH, etc.).
+
+A deduplicated CSV export is also generated for analysis workflows (columns depend on source features; inspect produced files).
+
+**Reliability & best practices**
+
+Use overlap when tiling to avoid boundary misses; deduplicate by the unique feature ID returned in GeoJSON. <br>
+Respect request rates and consider adding polite sleeps and retries to avoid overloading servers.<br>
+Validate GeoJSON/coordinates after harvest
+
+**Ethics, legality & responsible use**
+
+This repository documents a reverse-engineering methodology for extracting publicly served data.Always ensure your data collection complies with the target site’s Terms of Service and applicable laws.
+Use the harvested data responsibly for research, analysis, or tools that benefit stakeholders (e.g., farmers, researchers).If in doubt about permitted use, consult legal counsel or the data provider.
+
+**Troubleshooting**
+
+If GraphQL responses change, re-run discovery to refresh valid State/District IDs.
+
+If public/layers returns different fields, inspect the raw JSON — cycle names and bbox are required to build layer IDs.
+
+For missing points, reduce tile size or increase overlap and re-run the tiler; verify deduplication keys.
 
 
 
